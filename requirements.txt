@@ -1,0 +1,22 @@
+# MedCheck — Drug Interaction Knowledge Graph
+# Install: pip install -r requirements.txt
+
+# API & backend
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+pydantic==2.8.2
+
+# Neo4j
+neo4j==5.24.0
+
+# AI — GraphRAG
+anthropic==0.34.0
+python-dotenv==1.0.1
+
+# Data import & processing
+requests==2.32.3
+openpyxl==3.1.5
+
+# Visualization & analysis
+matplotlib==3.9.2
+numpy==2.1.1

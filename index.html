@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedCheck — Drug Interaction Checker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --royal: #2a52be;
+            --royal-dark: #1a3a9e;
+            --royal-deep: #0f2570;
+            --royal-light: #e8edf9;
+            --royal-mid: #c5d0f0;
+            --accent: #4a90d9;
+            --danger: #c0392b;
+            --danger-bg: #fdf0ef;
+            --warn: #d4860a;
+            --warn-bg: #fdf5e6;
+            --safe: #1a7a4a;
+            --safe-bg: #edf7f2;
+            --neutral: #5a6a8a;
+            --border: #d0d8ee;
+            --bg: #f4f6fb;
+            --white: #ffffff;
+            --text: #1a2340;
+            --text-light: #6b7a9a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Source Sans 3', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--royal-deep) 0%, var(--royal) 60%, var(--accent) 100%);
+            color: white;
+            padding: 36px 48px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: -60px; right: -60px;
+            width: 260px; height: 260px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+        }
+
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: -40px; left: 30%;
+            width: 180px; height: 180px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.04);
+        }
+
+        .header-inner { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; }
+
+        header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 36px;
+            letter-spacing: -0.5px;
+            margin-bottom: 6px;
+        }
+
+        header p {
+            font-size: 15px;
+            font-weight: 300;
+            opacity: 0.75;
+            letter-spacing: 0.3px;
+        }
+
+        .header-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 20px;
+            padding: 4px 14px;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 860px;
+            margin: 40px auto;
+            padding: 0 24px 60px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--white);
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 12px rgba(42, 82, 190, 0.07);
+            transition: box-shadow 0.2s;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 20px rgba(42, 82, 190, 0.12);
+        }
+
+        .card-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+            color: var(--royal-deep);
+            margin-bottom: 6px;
+        }
+
+        .card-subtitle {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-bottom: 20px;
+            font-weight: 400;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 20px 0;
+        }
+
+        /* Inputs */
+        .input-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 11px 18px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Source Sans 3', sans-serif;
+            color: var(--text);
+            background: var(--white);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--royal);
+            box-shadow: 0 0 0 3px rgba(42, 82, 190, 0.1);
+        }
+
+        input[type="text"]::placeholder {
+            color: #aab3cc;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 11px 22px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'Source Sans 3', sans-serif;
+            cursor: pointer;
+            letter-spacing: 0.2px;
+            transition: all 0.18s;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--royal);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--royal-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(42, 82, 190, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--royal-light);
+            color: var(--royal);
+            border: 1.5px solid var(--royal-mid);
+        }
+
+        .btn-secondary:hover {
+            background: var(--royal-mid);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--royal);
+            border: 1.5px solid var(--royal);
+        }
+
+        .btn-outline:hover {
+            background: var(--royal-light);
+        }
+
+        /* Drug tags */
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            min-height: 36px;
+            margin: 14px 0 4px;
+        }
+
+        .drug-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--royal-light);
+            border: 1px solid var(--royal-mid);
+            color: var(--royal-deep);
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .drug-tag .remove {
+            cursor: pointer;
+            color: var(--royal);
+            font-size: 16px;
+            line-height: 1;
+            opacity: 0.6;
+            transition: opacity 0.15s;
+        }
+
+        .drug-tag .remove:hover { opacity: 1; }
+
+        /* Results */
+        #results, #symptom-results, #enhancer-results {
+            margin-top: 16px;
+        }
+
+        .result-block {
+            margin-bottom: 20px;
+        }
+
+        .result-drug-name {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-light);
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .result-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .result-item .indicator {
+            width: 4px;
+            min-width: 4px;
+            height: 100%;
+            border-radius: 2px;
+            align-self: stretch;
+        }
+
+        .result-item.high { background: var(--danger-bg); border-left: 4px solid var(--danger); }
+        .result-item.medium { background: var(--warn-bg); border-left: 4px solid var(--warn); }
+        .result-item.low { background: #eef4fc; border-left: 4px solid var(--accent); }
+        .result-item.safe { background: var(--safe-bg); border-left: 4px solid var(--safe); }
+        .result-item.info { background: var(--royal-light); border-left: 4px solid var(--royal-mid); }
+
+        .result-label {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-right: 6px;
+        }
+
+        .label-high { background: #fad7d5; color: var(--danger); }
+        .label-medium { background: #fde8c0; color: var(--warn); }
+        .label-low { background: #d0e8f8; color: #1a6aaa; }
+        .label-safe { background: #c8ecd9; color: var(--safe); }
+        .label-info { background: var(--royal-mid); color: var(--royal-deep); }
+
+        .risk-badge {
+            margin-left: auto;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            padding: 3px 10px;
+            border-radius: 12px;
+            white-space: nowrap;
+        }
+
+        .risk-HIGH { background: #fad7d5; color: var(--danger); }
+        .risk-MEDIUM { background: #fde8c0; color: var(--warn); }
+        .risk-LOW { background: #d0e8f8; color: #1a6aaa; }
+
+        .empty-state {
+            text-align: center;
+            padding: 28px;
+            color: var(--text-light);
+            font-size: 14px;
+            font-style: italic;
+        }
+
+        /* Prescription badge */
+        .rx-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 9px;
+            border-radius: 10px;
+            margin-left: auto;
+            white-space: nowrap;
+        }
+
+        .rx { background: #fde8c0; color: var(--warn); }
+        .otc { background: var(--safe-bg); color: var(--safe); }
+
+        /* ── Tab navigation ── */
+        .tab-nav {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 28px;
+            margin-top: -8px;
+        }
+        .tab-btn {
+            padding: 10px 22px;
+            font-family: 'Source Sans 3', sans-serif;
+            font-size: 13.5px;
+            font-weight: 500;
+            color: var(--text-light);
+            background: none;
+            border: none;
+            border-bottom: 2.5px solid transparent;
+            margin-bottom: -2px;
+            cursor: pointer;
+            transition: all 0.18s;
+            letter-spacing: 0.2px;
+        }
+        .tab-btn:hover { color: var(--royal); }
+        .tab-btn.active {
+            color: var(--royal);
+            border-bottom-color: var(--royal);
+            font-weight: 600;
+        }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ── Discrepancy cards ── */
+        .disc-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+        @media (max-width: 620px) { .disc-grid { grid-template-columns: 1fr; } }
+
+        .disc-check {
+            background: var(--royal-light);
+            border: 1.5px solid var(--royal-mid);
+            border-radius: 12px;
+            padding: 16px 18px;
+            transition: all 0.18s;
+        }
+        .disc-check:hover {
+            border-color: var(--royal);
+            box-shadow: 0 2px 10px rgba(42,82,190,0.1);
+        }
+        .disc-check-header {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+        }
+        .disc-icon {
+            width: 32px; height: 32px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: 700; flex-shrink: 0;
+        }
+        .disc-icon.danger { background: #fdf0ef; color: var(--danger); }
+        .disc-icon.warn   { background: var(--warn-bg); color: var(--warn); }
+        .disc-icon.info   { background: var(--royal-light); color: var(--royal); }
+        .disc-check-name  { font-size: 14px; font-weight: 600; color: var(--royal-deep); }
+        .disc-check-desc  { font-size: 12px; color: var(--text-light); line-height: 1.5; margin-bottom: 10px; }
+        .disc-cypher {
+            background: var(--royal-deep);
+            border-radius: 8px;
+            padding: 9px 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: #a8c4f0;
+            line-height: 1.65;
+            margin-bottom: 10px;
+            white-space: pre;
+            overflow-x: auto;
+        }
+        .disc-cypher .kw  { color: #7eb8f7; }
+        .disc-cypher .fn  { color: #93e0b4; }
+        .disc-cypher .str { color: #f4a8a8; }
+        .btn-disc {
+            width: 100%;
+            padding: 8px 0;
+            background: var(--royal);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Source Sans 3', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.18s;
+        }
+        .btn-disc:hover {
+            background: var(--royal-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(42,82,190,0.25);
+        }
+        .btn-disc:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .disc-results-panel {
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .disc-results-header {
+            display: flex; align-items: center; gap: 10px;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+            background: var(--royal-light);
+        }
+        .disc-results-title { font-size: 14px; font-weight: 600; color: var(--royal-deep); flex: 1; }
+        .disc-results-meta  { font-size: 12px; color: var(--text-light); }
+        .disc-results-body  { padding: 14px 18px; min-height: 80px; }
+
+        .disc-row {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--royal-light);
+            font-size: 13px;
+            animation: fadeUp 0.2s ease;
+        }
+        .disc-row:last-child { border-bottom: none; }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+        .disc-row-dot {
+            width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0;
+        }
+        .disc-row-content { flex: 1; }
+        .disc-row-main { font-weight: 600; color: var(--text); margin-bottom: 2px; }
+        .disc-row-detail { font-size: 12px; color: var(--text-light); }
+        .disc-type-badge {
+            font-size: 11px; font-weight: 700; letter-spacing: 0.4px;
+            padding: 3px 8px; border-radius: 20px; text-transform: uppercase;
+            white-space: nowrap; align-self: flex-start; margin-top: 2px;
+        }
+
+        .disc-summary {
+            display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px;
+        }
+        .summary-pill {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 12px; font-weight: 600;
+            padding: 5px 12px; border-radius: 20px;
+        }
+
+        .empty-disc {
+            display: flex; flex-direction: column; align-items: center;
+            padding: 32px; color: var(--text-light); font-size: 13px; gap: 8px;
+        }
+        .empty-disc .icon { font-size: 28px; opacity: 0.3; }
+
+        /* ── GraphRAG styles ── */
+        .graphrag-sub-tabs {
+            display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;
+        }
+        .gr-tab {
+            padding: 7px 18px;
+            border-radius: 20px;
+            font-size: 13px; font-weight: 500;
+            font-family: 'Source Sans 3', sans-serif;
+            cursor: pointer; border: 1.5px solid var(--border);
+            background: var(--white); color: var(--text-light);
+            transition: all 0.18s;
+        }
+        .gr-tab:hover { border-color: var(--royal); color: var(--royal); }
+        .gr-tab.active {
+            background: var(--royal); color: white;
+            border-color: var(--royal);
+            box-shadow: 0 2px 8px rgba(42,82,190,0.25);
+        }
+        .gr-panel { display: none; }
+        .gr-panel.active { display: block; }
+
+        .pipeline-row {
+            display: flex; align-items: center; gap: 0;
+            margin-bottom: 16px; flex-wrap: wrap; gap: 6px;
+        }
+        .pipe-step {
+            background: var(--royal-light);
+            border: 1.5px solid var(--royal-mid);
+            border-radius: 20px;
+            padding: 5px 14px;
+            font-size: 12px; color: var(--royal-deep); font-weight: 500;
+            display: flex; align-items: center; gap: 5px;
+            transition: all 0.2s;
+        }
+        .pipe-step.lit {
+            background: var(--royal);
+            border-color: var(--royal);
+            color: white;
+            box-shadow: 0 2px 8px rgba(42,82,190,0.3);
+        }
+        .pipe-arrow { color: var(--text-light); font-size: 12px; }
+
+        .gr-response {
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .gr-response-header {
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 18px;
+            background: var(--royal-light);
+            border-bottom: 1px solid var(--border);
+        }
+        .gr-response-label { font-size: 14px; font-weight: 600; color: var(--royal-deep); flex: 1; }
+        .gr-response-meta  { font-size: 12px; color: var(--text-light); }
+        .gr-response-body {
+            padding: 18px;
+            font-size: 13.5px;
+            line-height: 1.75;
+            color: var(--text);
+            min-height: 100px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .gr-placeholder {
+            display: flex; flex-direction: column; align-items: center;
+            padding: 32px; color: var(--text-light); font-size: 13px; gap: 8px; text-align: center;
+        }
+        .gr-placeholder .icon { font-size: 28px; opacity: 0.25; }
+
+        .gr-context-toggle {
+            margin-top: 10px; font-size: 12px; color: var(--royal);
+            cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+        }
+        .gr-context-toggle:hover { text-decoration: underline; }
+        .gr-context-box {
+            background: var(--royal-deep);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-top: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: #a8c4f0;
+            line-height: 1.65;
+            display: none;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        /* Chat */
+        .chat-messages {
+            background: var(--bg);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            min-height: 260px;
+            max-height: 360px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .chat-empty {
+            text-align: center; color: var(--text-light); font-size: 13px;
+            padding: 40px 20px; line-height: 1.7;
+        }
+        .chat-msg { display: flex; gap: 10px; animation: fadeUp 0.2s ease; }
+        .chat-avatar {
+            width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 700;
+        }
+        .chat-msg.user .chat-avatar { background: var(--royal); color: white; }
+        .chat-msg.ai   .chat-avatar { background: var(--accent); color: white; }
+        .chat-msg-text {
+            flex: 1; font-size: 13.5px; line-height: 1.7;
+            color: var(--text); padding-top: 4px; white-space: pre-wrap;
+        }
+        .chat-msg.user .chat-msg-text { color: var(--royal-deep); font-weight: 500; }
+
+        /* Spinner */
+        .spinner {
+            width: 14px; height: 14px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: inline-block; vertical-align: middle;
+        }
+        .spinner-blue {
+            border-color: rgba(42,82,190,0.2);
+            border-top-color: var(--royal);
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Footer */
+        .disclaimer {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-light);
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-inner">
+        <div class="header-badge">Clinical Reference Tool</div>
+        <h1>MedCheck</h1>
+        <p>Drug Interaction &amp; Contraindication Checker — Powered by Neo4j Knowledge Graph</p>
+    </div>
+</header>
+
+<div class="container">
+
+    <!-- Interaction Checker -->
+    <div class="card">
+        <div class="card-title">Interaction Checker</div>
+        <div class="card-subtitle">Enter one or more drugs to check for known interactions, contraindications, and safe combinations.</div>
+
+        <div class="input-row">
+            <input type="text" id="drug-input"
+                   placeholder="Enter drug name (e.g. Warfarin, BPC-157)..."
+                   onkeydown="if(event.key==='Enter') addDrug()">
+            <button class="btn btn-secondary" onclick="addDrug()">Add</button>
+            <button class="btn btn-primary" onclick="checkInteractions()">Check Interactions</button>
+        </div>
+
+        <div class="tags-container" id="drug-tags"></div>
+        <div id="results"></div>
+    </div>
+
+    <!-- Symptom Lookup -->
+    <div class="card">
+        <div class="card-title">Symptom Lookup</div>
+        <div class="card-subtitle">Find drugs indicated for a specific condition or symptom.</div>
+
+        <div class="input-row">
+            <input type="text" id="symptom-input"
+                   placeholder="Enter symptom or condition (e.g. Pain, Fever, Infection)..."
+                   onkeydown="if(event.key==='Enter') checkSymptom()">
+            <button class="btn btn-primary" onclick="checkSymptom()">Search</button>
+        </div>
+        <div id="symptom-results"></div>
+    </div>
+
+    <!-- Efficacy Enhancers -->
+    <div class="card">
+        <div class="card-title">Efficacy Enhancers</div>
+        <div class="card-subtitle">Identify supplements or compounds that may safely support the effects of a given drug.</div>
+
+        <div class="input-row">
+            <input type="text" id="enhancer-input"
+                   placeholder="Enter drug name (e.g. BPC-157, NAD+)..."
+                   onkeydown="if(event.key==='Enter') checkEnhancers()">
+            <button class="btn btn-primary" onclick="checkEnhancers()">Search</button>
+        </div>
+        <div id="enhancer-results"></div>
+    </div>
+
+    <!-- ═══ DISCREPANCY DETECTOR ═══ -->
+    <div class="card">
+        <div class="card-title">Discrepancy Detector</div>
+        <div class="card-subtitle">Detect data conflicts, missing relationships, and anomalies directly in the Neo4j Knowledge Graph — GDS + Cypher.</div>
+
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="runAllChecks()" id="btn-run-all">▶ Run All Checks</button>
+            <button class="btn btn-secondary" onclick="clearDiscResults()">Clear</button>
+            <div class="disc-summary" id="disc-summary"></div>
+        </div>
+
+        <div class="disc-grid" id="disc-grid"></div>
+
+        <div class="disc-results-panel">
+            <div class="disc-results-header">
+                <span style="font-size:16px">🔍</span>
+                <span class="disc-results-title">Analysis Results</span>
+                <span class="disc-results-meta" id="disc-meta">—</span>
+            </div>
+            <div class="disc-results-body" id="disc-results-body">
+                <div class="empty-disc">
+                    <div class="icon">📊</div>
+                    <div>Run checks to detect discrepancies in your Knowledge Graph</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top:12px;padding:12px 16px;background:var(--royal-light);border-radius:10px;font-size:12px;color:var(--text-light);line-height:1.65">
+            <strong style="color:var(--royal-deep)">How it works:</strong>
+            Connects to your Neo4j Desktop via HTTP API on <code style="background:var(--white);padding:1px 5px;border-radius:4px;color:var(--royal)">localhost:7474</code>.
+            Each check runs a Cypher query on your real KG. GDS checks require the Graph Data Science plugin.
+        </div>
+    </div>
+
+    <!-- ═══ GRAPHRAG ═══ -->
+    <div class="card">
+        <div class="card-title">GraphRAG Analyst</div>
+        <div class="card-subtitle">Neo4j Cypher retrieval → subgraph context → Claude AI narrative analysis.</div>
+
+        <div class="graphrag-sub-tabs">
+            <button class="gr-tab active" onclick="switchGR('drug')" id="gr-tab-drug">💊 Drug Analysis</button>
+            <button class="gr-tab" onclick="switchGR('discrepancy')" id="gr-tab-discrepancy">⚡ Discrepancy Audit</button>
+            <button class="gr-tab" onclick="switchGR('chat')" id="gr-tab-chat">💬 Free Chat</button>
+        </div>
+
+        <!-- Drug Analysis -->
+        <div class="gr-panel active" id="gr-drug">
+            <div class="pipeline-row" id="pipe-drug">
+                <div class="pipe-step" id="pd1">Cypher query</div>
+                <span class="pipe-arrow">→</span>
+                <div class="pipe-step" id="pd2">Serialize subgraph</div>
+                <span class="pipe-arrow">→</span>
+                <div class="pipe-step" id="pd3">Claude analysis</div>
+                <span class="pipe-arrow">→</span>
+                <div class="pipe-step" id="pd4">Narrative output</div>
+            </div>
+            <div class="input-row" style="margin-bottom:14px">
+                <input type="text" id="gr-drug-input" placeholder="Enter drug name (e.g. BPC-157, Warfarin, Pemetrexed)..."
+                    onkeydown="if(event.key==='Enter') grAnalyzeDrug()">
+                <button class="btn btn-primary" id="btn-gr-drug" onclick="grAnalyzeDrug()">Analyze</button>
+            </div>
+            <div class="gr-response">
+                <div class="gr-response-header">
+                    <span style="font-size:16px">AI Drug Agent</span>
+                    <span class="gr-response-label">GraphRAG Analysis</span>
+                    <span class="gr-response-meta" id="gr-drug-meta">—</span>
+                </div>
+                <div class="gr-response-body" id="gr-drug-body">
+                    <div class="gr-placeholder"><div class="icon">Drugs</div><div>Enter a drug name and click Analyze<br>to get an AI-powered clinical summary from your KG</div></div>
+                </div>
+            </div>
+            <div class="gr-context-toggle" onclick="toggleGRCtx('gr-drug-ctx')">▶ Show raw KG context sent to Claude</div>
+            <div class="gr-context-box" id="gr-drug-ctx"></div>
+        </div>
+
+        <!-- Discrepancy Audit -->
+        <div class="gr-panel" id="gr-discrepancy">
+            <div class="pipeline-row">
+                <div class="pipe-step" id="pa1">4× Cypher rules</div>
+                <span class="pipe-arrow">→</span>
+                <div class="pipe-step" id="pa2">Aggregate findings</div>
+                <span class="pipe-arrow">→</span>
+                <div class="pipe-step" id="pa3">Claude audit</div>
+                <span class="pipe-arrow">→</span>
+                <div class="pipe-step" id="pa4">Remediation report</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+                <span style="font-size:13px;color:var(--text-light);flex:1">Runs all discrepancy checks → LLM audit report with severity ranking and remediation plan</span>
+                <button class="btn btn-primary" id="btn-gr-audit" onclick="grAudit()">Run Audit</button>
+            </div>
+            <div class="gr-response">
+                <div class="gr-response-header">
+                    <span style="font-size:16px">AI Audit Agent</span>
+                    <span class="gr-response-label">Audit Report</span>
+                    <span class="gr-response-meta" id="gr-audit-meta">—</span>
+                </div>
+                <div class="gr-response-body" id="gr-audit-body">
+                    <div class="gr-placeholder"><div class="icon">AI Scan Agent</div><div>Click Run Audit to scan your KG<br>and get an AI-powered remediation report</div></div>
+                </div>
+            </div>
+            <div class="gr-context-toggle" onclick="toggleGRCtx('gr-audit-ctx')">▶ Show raw Cypher findings sent to Claude</div>
+            <div class="gr-context-box" id="gr-audit-ctx"></div>
+        </div>
+
+        <!-- Free Chat -->
+        <div class="gr-panel" id="gr-chat">
+            <div class="chat-messages" id="chat-messages">
+                <div class="chat-empty" id="chat-empty">
+                    Ask anything about your Knowledge Graph in natural language.<br><br>
+                    <span style="font-size:12px;opacity:0.7">
+                        "Is it safe to combine Pemetrexed with Warfarin?"<br>
+                        "What are the data quality issues in this graph?"<br>
+                        "What can I take for pain?"
+                    </span>
+                </div>
+            </div>
+            <div class="input-row">
+                <input type="text" id="chat-input" placeholder="Ask about a drug, symptom, or data quality..."
+                    onkeydown="if(event.key==='Enter') grChat()">
+                <button class="btn btn-primary" id="btn-chat" onclick="grChat()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="disclaimer">
+        MedCheck is intended for informational and educational purposes only. Always consult a licensed healthcare professional before making any medical decisions.
+    </div>
+
+</div>
+
+<script>
+    // ══════════════════════════════════════════════════════════
+    // ORIGINAL MEDCHECK LOGIC
+    // ══════════════════════════════════════════════════════════
+    let drugs = [];
+
+    function addDrug() {
+        const input = document.getElementById('drug-input');
+        const name = input.value.trim();
+        if (!name || drugs.includes(name)) { input.value = ''; return; }
+        drugs.push(name);
+        input.value = '';
+        renderTags();
+    }
+
+    function renderTags() {
+        const container = document.getElementById('drug-tags');
+        container.innerHTML = drugs.map(d =>
+            `<span class="drug-tag">${d}<span class="remove" onclick="removeDrug('${d}')">x</span></span>`
+        ).join('');
+    }
+
+    function removeDrug(name) {
+        drugs = drugs.filter(d => d !== name);
+        renderTags();
+    }
+
+    async function checkInteractions() {
+        if (drugs.length === 0) return;
+        try {
+            const res = await fetch('/check', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({drugs})
+            });
+            const data = await res.json();
+            renderResults(data.results);
+        } catch(e) {
+            document.getElementById('results').innerHTML =
+                '<div class="result-item info">Unable to connect to backend. Ensure the server is running.</div>';
+        }
+    }
+
+    function renderResults(results) {
+        const container = document.getElementById('results');
+        if (!results || !results.length) {
+            container.innerHTML = '<div class="empty-state">No results found.</div>';
+            return;
+        }
+        container.innerHTML = results.map(r => {
+            const dangers = (r.dangers || []).filter(d => d.drug);
+            const safe = (r.safe || []).filter(s => s.drug);
+            const antagonists = (r.antagonists || []).filter(a => a.drug);
+            const dangerHTML = dangers.map(d => {
+                const riskClass = d.risk || 'MEDIUM';
+                return `<div class="result-item ${riskClass.toLowerCase()}">
+                    <div style="flex:1">
+                        <span class="result-label label-${riskClass.toLowerCase()}">${d.type ? d.type.replace(/_/g,' ') : 'Interaction'}</span>
+                        with <strong>${d.drug}</strong>
+                        ${d.effect ? `<br><span style="color:#666;font-size:13px">${d.effect}</span>` : ''}
+                        ${d.reason ? `<br><span style="color:#666;font-size:13px">${d.reason}</span>` : ''}
+                    </div>
+                    ${d.risk ? `<span class="risk-badge risk-${d.risk}">${d.risk}</span>` : ''}
+                </div>`;
+            }).join('');
+            const antagonistHTML = antagonists.map(a => `
+                <div class="result-item high">
+                    <div><span class="result-label label-high">Antagonist</span><strong>${a.drug}</strong></div>
+                </div>`).join('');
+            const safeHTML = safe.map(s => `
+                <div class="result-item safe">
+                    <div>
+                        <span class="result-label label-safe">Safe</span>
+                        with <strong>${s.drug}</strong>
+                        ${s.note ? `<br><span style="color:#555;font-size:13px">${s.note}</span>` : ''}
+                    </div>
+                </div>`).join('');
+            const noneHTML = (!dangers.length && !safe.length && !antagonists.length)
+                ? '<div class="result-item info"><span class="result-label label-info">Info</span>No known interactions in database.</div>'
+                : '';
+            return `<div class="result-block">
+                <div class="result-drug-name">${r.drug}</div>
+                ${dangerHTML}${antagonistHTML}${safeHTML}${noneHTML}
+            </div>`;
+        }).join('<div class="divider"></div>');
+    }
+
+    async function checkSymptom() {
+        const symptom = document.getElementById('symptom-input').value.trim();
+        if (!symptom) return;
+        try {
+            const res = await fetch('/symptom', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({symptom})
+            });
+            const data = await res.json();
+            const container = document.getElementById('symptom-results');
+            if (!data.results || !data.results.length) {
+                container.innerHTML = '<div class="empty-state">No drugs found for this symptom.</div>';
+                return;
+            }
+            container.innerHTML = '<div style="margin-top:14px">' + data.results.map(r => `
+                <div class="result-item ${r.prescription ? 'medium' : 'safe'}">
+                    <div style="flex:1">
+                        <strong>${r.drug}</strong>
+                        <span style="color:var(--text-light);font-size:13px"> — ${r.indication}</span>
+                    </div>
+                    <span class="rx-badge ${r.prescription ? 'rx' : 'otc'}">${r.prescription ? 'Prescription' : 'OTC'}</span>
+                </div>`).join('') + '</div>';
+        } catch(e) {
+            document.getElementById('symptom-results').innerHTML =
+                '<div class="result-item info">Unable to connect to backend.</div>';
+        }
+    }
+
+    async function checkEnhancers() {
+        const drug = document.getElementById('enhancer-input').value.trim();
+        if (!drug) return;
+        try {
+            const res = await fetch(`/enhancers/${encodeURIComponent(drug)}`);
+            const data = await res.json();
+            const container = document.getElementById('enhancer-results');
+            if (!data.results || !data.results.length) {
+                container.innerHTML = '<div class="empty-state">No enhancers found in database.</div>';
+                return;
+            }
+            container.innerHTML = '<div style="margin-top:14px">' + data.results.map(r => `
+                <div class="result-item safe">
+                    <div>
+                        <span class="result-label label-safe">Enhancer</span>
+                        <strong>${r.enhancer}</strong>
+                        ${r.effect ? `<br><span style="color:#555;font-size:13px">${r.effect}</span>` : ''}
+                    </div>
+                </div>`).join('') + '</div>';
+        } catch(e) {
+            document.getElementById('enhancer-results').innerHTML =
+                '<div class="result-item info">Unable to connect to backend.</div>';
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // NEO4J HTTP CONNECTION
+    // ══════════════════════════════════════════════════════════
+    const NEO4J_HTTP = 'http://localhost:7474';
+    const NEO4J_USER = 'neo4j';
+    const NEO4J_PASS = 'Ad4m+5amo12_Ad4m+5amo12';
+
+    async function runCypher(query, params = {}) {
+        const resp = await fetch(`${NEO4J_HTTP}/db/neo4j/tx/commit`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic ' + btoa(`${NEO4J_USER}:${NEO4J_PASS}`)
+            },
+            body: JSON.stringify({ statements: [{ statement: query, parameters: params }] })
+        });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data = await resp.json();
+        if (data.errors?.length) throw new Error(data.errors[0].message);
+        return data.results[0];
+    }
+
+    function parseRows(result) {
+        if (!result?.data) return [];
+        return result.data.map(row => {
+            const obj = {};
+            result.columns.forEach((c, i) => obj[c] = row.row[i]);
+            return obj;
+        });
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // DISCREPANCY DETECTOR
+    // ══════════════════════════════════════════════════════════
+    const CHECKS = [
+        {
+            id: 'conflict',
+            name: 'Relationship Conflict',
+            icon: '⚡', iconClass: 'danger',
+            desc: 'A drug is both SAFE_WITH and CONTRAINDICATED_WITH the same drug — direct data conflict',
+            cypher: `MATCH (a)-[:SAFE_WITH]->(b)\nMATCH (a)-[:CONTRAINDICATED_WITH]->(b)\nRETURN a.name AS drug_a, b.name AS drug_b`,
+            severity: 'danger',
+            typeLabel: 'CONFLICT',
+            typeBg: '#fdf0ef', typeColor: '#c0392b',
+            dotColor: '#c0392b'
+        },
+        {
+            id: 'missing_class',
+            name: 'Missing Drug Class',
+            icon: '○', iconClass: 'warn',
+            desc: 'Drugs without a DrugClass assignment — incomplete ontology coverage',
+            cypher: `MATCH (d:Drug)\nWHERE NOT (d)-[:BELONGS_TO]->()\nRETURN d.name AS drug`,
+            severity: 'warn',
+            typeLabel: 'NO CLASS',
+            typeBg: '#fdf5e6', typeColor: '#d4860a',
+            dotColor: '#d4860a'
+        },
+        {
+            id: 'orphan',
+            name: 'Orphaned Nodes',
+            icon: '◌', iconClass: 'warn',
+            desc: 'Nodes with no relationships at all — isolated entities in the graph',
+            cypher: `MATCH (n:Drug)\nWHERE NOT (n)--()\nRETURN n.name AS drug, id(n) AS nodeId\nLIMIT 20`,
+            severity: 'warn',
+            typeLabel: 'ORPHANED',
+            typeBg: '#fdf5e6', typeColor: '#d4860a',
+            dotColor: '#d4860a'
+        },
+        {
+            id: 'missing_name',
+            name: 'Missing Display Names',
+            icon: '?', iconClass: 'info',
+            desc: 'DrugBank IDs without a resolved display_name — affects readability',
+            cypher: `MATCH (d:Drug)\nWHERE d.name STARTS WITH 'DB'\n  AND d.display_name IS NULL\nRETURN d.name AS drug\nLIMIT 20`,
+            severity: 'info',
+            typeLabel: 'NO NAME',
+            typeBg: '#e8edf9', typeColor: '#2a52be',
+            dotColor: '#2a52be'
+        },
+        {
+            id: 'duplicate',
+            name: 'Duplicate Names',
+            icon: '⊕', iconClass: 'info',
+            desc: 'Multiple nodes sharing the same name — potential duplicate records',
+            cypher: `MATCH (n:Drug)\nWHERE n.name IS NOT NULL\nWITH n.name AS name, count(*) AS cnt\nWHERE cnt > 1\nRETURN name AS drug, cnt\nORDER BY cnt DESC LIMIT 15`,
+            severity: 'info',
+            typeLabel: 'DUPLICATE',
+            typeBg: '#e8edf9', typeColor: '#2a52be',
+            dotColor: '#2a52be'
+        },
+        {
+            id: 'hub',
+            name: 'Anomalous Hubs',
+            icon: '◉', iconClass: 'info',
+            desc: 'Drugs with unexpectedly high degree — potential data inflation or key compounds',
+            cypher: `MATCH (n:Drug)\nWITH n, size([(n)-[]-() | 1]) AS deg\nWHERE deg > 300\nRETURN coalesce(n.display_name, n.name) AS drug, deg\nORDER BY deg DESC LIMIT 10`,
+            severity: 'info',
+            typeLabel: 'HUB',
+            typeBg: '#e8edf9', typeColor: '#1a3a9e',
+            dotColor: '#1a3a9e'
+        }
+    ];
+
+    let allDiscResults = [];
+
+    function renderDiscGrid() {
+        const grid = document.getElementById('disc-grid');
+        grid.innerHTML = CHECKS.map(c => `
+            <div class="disc-check">
+                <div class="disc-check-header">
+                    <div class="disc-icon ${c.iconClass}">${c.icon}</div>
+                    <div class="disc-check-name">${c.name}</div>
+                </div>
+                <div class="disc-check-desc">${c.desc}</div>
+                <div class="disc-cypher">${highlightCypher(c.cypher)}</div>
+                <button class="btn-disc" id="discbtn-${c.id}" onclick="runSingleCheck('${c.id}')">▶ Run</button>
+            </div>
+        `).join('');
+    }
+
+    function highlightCypher(q) {
+        return q
+            .replace(/\b(MATCH|WHERE|RETURN|WITH|NOT|AND|OR|AS|IS|NULL|ORDER BY|LIMIT|STARTS WITH|count|size|coalesce|id)\b/g,
+                '<span class="kw">$1</span>')
+            .replace(/\b(gds\.\w+\.\w+)\b/g, '<span class="fn">$1</span>')
+            .replace(/'[^']*'/g, '<span class="str">$&</span>');
+    }
+
+    async function runSingleCheck(id) {
+        const check = CHECKS.find(c => c.id === id);
+        const btn = document.getElementById(`discbtn-${id}`);
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span>';
+
+        try {
+            const result = await runCypher(check.cypher);
+            const rows = parseRows(result);
+            allDiscResults = allDiscResults.filter(r => r._checkId !== id);
+            rows.forEach(row => {
+                const main = row.drug_a || row.drug || row.name || Object.values(row)[0] || '—';
+                const detail = row.drug_b
+                    ? `↔ ${row.drug_b}`
+                    : row.cnt ? `${row.cnt}× duplicates` : row.deg ? `degree: ${row.deg}` : '';
+                allDiscResults.push({
+                    _checkId: id, checkName: check.name, severity: check.severity,
+                    main, detail,
+                    typeLabel: check.typeLabel, typeBg: check.typeBg, typeColor: check.typeColor,
+                    dotColor: check.dotColor
+                });
+            });
+            renderDiscResults();
+            btn.innerHTML = `✓ ${rows.length} found`;
+            btn.style.background = rows.length > 0 ? '#d4860a' : '#1a7a4a';
+        } catch(e) {
+            btn.innerHTML = '✗ Error';
+            btn.style.background = '#c0392b';
+            allDiscResults.push({
+                _checkId: id, checkName: check.name, severity: 'danger',
+                main: `Error: ${check.name}`, detail: e.message.slice(0, 80),
+                typeLabel: 'ERROR', typeBg: '#fdf0ef', typeColor: '#c0392b',
+                dotColor: '#c0392b'
+            });
+            renderDiscResults();
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    async function runAllChecks() {
+        allDiscResults = [];
+        const btn = document.getElementById('btn-run-all');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner spinner-blue"></span> Analyzing...';
+        btn.style.background = 'var(--royal-dark)';
+        for (const check of CHECKS) await runSingleCheck(check.id);
+        btn.disabled = false;
+        btn.innerHTML = '▶ Run All Checks';
+        btn.style.background = '';
+    }
+
+    function renderDiscResults() {
+        const body = document.getElementById('disc-results-body');
+        const meta = document.getElementById('disc-meta');
+        if (!allDiscResults.length) {
+            body.innerHTML = '<div class="empty-disc"><div class="icon">✅</div><div>No discrepancies found</div></div>';
+            meta.textContent = '0 issues';
+            renderDiscSummary();
+            return;
+        }
+        body.innerHTML = allDiscResults.map(r => `
+            <div class="disc-row">
+                <div class="disc-row-dot" style="background:${r.dotColor}"></div>
+                <div class="disc-row-content">
+                    <div class="disc-row-main">${r.main}</div>
+                    <div class="disc-row-detail">${r.checkName}${r.detail ? ' · ' + r.detail : ''}</div>
+                </div>
+                <div class="disc-type-badge" style="background:${r.typeBg};color:${r.typeColor}">${r.typeLabel}</div>
+            </div>
+        `).join('');
+        meta.textContent = `${allDiscResults.length} records · ${new Date().toLocaleTimeString('en-GB')}`;
+        renderDiscSummary();
+    }
+
+    function renderDiscSummary() {
+        const danger = allDiscResults.filter(r => r.severity === 'danger').length;
+        const warn   = allDiscResults.filter(r => r.severity === 'warn').length;
+        const info   = allDiscResults.filter(r => r.severity === 'info').length;
+        document.getElementById('disc-summary').innerHTML = [
+            danger > 0 ? `<div class="summary-pill" style="background:#fdf0ef;color:#c0392b">⚡ ${danger} critical</div>` : '',
+            warn > 0   ? `<div class="summary-pill" style="background:#fdf5e6;color:#d4860a">⚠ ${warn} warnings</div>` : '',
+            info > 0   ? `<div class="summary-pill" style="background:#e8edf9;color:#2a52be">ℹ ${info} info</div>` : '',
+        ].join('');
+    }
+
+    function clearDiscResults() {
+        allDiscResults = [];
+        renderDiscResults();
+        CHECKS.forEach(c => {
+            const btn = document.getElementById(`discbtn-${c.id}`);
+            if (btn) { btn.innerHTML = '▶ Run'; btn.style.background = ''; }
+        });
+        document.getElementById('disc-summary').innerHTML = '';
+        document.getElementById('disc-meta').textContent = '—';
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // GRAPHRAG
+    // ══════════════════════════════════════════════════════════
+    const CLAUDE_MODEL = 'claude-sonnet-4-6';
+    const SYSTEM_PROMPT = `You are a clinical knowledge graph analyst.
+You receive structured data from a Neo4j Knowledge Graph about drugs, their interactions and contraindications.
+Analyze the graph data and provide clear, accurate, clinically relevant insights.
+Be concise but thorough. Flag data quality issues. Note this is for informational purposes only.`;
+
+    async function callClaude(userMsg) {
+        const resp = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: CLAUDE_MODEL,
+                max_tokens: 1000,
+                system: SYSTEM_PROMPT,
+                messages: [{ role: 'user', content: userMsg }]
+            })
+        });
+        if (!resp.ok) throw new Error(`Claude API ${resp.status}`);
+        const data = await resp.json();
+        return data.content[0].text;
+    }
+
+    async function fetchDrugSubgraph(drug) {
+        const r = await runCypher(`
+            MATCH (d:Drug)
+            WHERE toLower(coalesce(d.display_name, d.name)) = toLower($name)
+               OR toLower(d.name) = toLower($name)
+            OPTIONAL MATCH (d)-[r1:INTERACTS_WITH]->(b:Drug)
+            OPTIONAL MATCH (d)-[r2:CONTRAINDICATED_WITH]->(c:Drug)
+            OPTIONAL MATCH (d)-[r3:SAFE_WITH]->(s:Drug)
+            OPTIONAL MATCH (d)-[:BELONGS_TO]->(cls)
+            RETURN
+                coalesce(d.display_name, d.name) AS drug,
+                d.chembl_id AS chembl_id, d.formula AS formula,
+                collect(DISTINCT {drug: coalesce(b.display_name,b.name), type: type(r1), risk: r1.risk}) AS interactions,
+                collect(DISTINCT {drug: coalesce(c.display_name,c.name), reason: r2.reason}) AS contraindications,
+                collect(DISTINCT {drug: coalesce(s.display_name,s.name), note: r3.note}) AS safe_combinations,
+                collect(DISTINCT cls.name) AS classes
+            LIMIT 1
+        `, { name: drug });
+        return parseRows(r)[0] || null;
+    }
+
+    function serializeDrug(sg) {
+        if (!sg?.drug) return `No data found for drug: ${sg}`;
+        const lines = [`KNOWLEDGE GRAPH DATA: ${sg.drug}`, '='.repeat(40)];
+        if (sg.chembl_id) lines.push(`ChEMBL ID: ${sg.chembl_id}`);
+        if (sg.formula)   lines.push(`Formula: ${sg.formula}`);
+        const cls = (sg.classes||[]).filter(Boolean);
+        if (cls.length)   lines.push(`Classes: ${cls.join(', ')}`);
+        const ints = (sg.interactions||[]).filter(i=>i?.drug);
+        if (ints.length) { lines.push('\nINTERACTIONS:'); ints.forEach(i => lines.push(`  - ${i.type||'INTERACTS_WITH'} ${i.drug} [risk: ${i.risk||'?'}]`)); }
+        const contra = (sg.contraindications||[]).filter(c=>c?.drug);
+        if (contra.length) { lines.push('\nCONTRAINDICATIONS:'); contra.forEach(c => lines.push(`  - CONTRAINDICATED WITH ${c.drug}${c.reason ? ' — ' + c.reason : ''}`)); }
+        const safe = (sg.safe_combinations||[]).filter(s=>s?.drug);
+        if (safe.length) { lines.push('\nSAFE COMBINATIONS:'); safe.forEach(s => lines.push(`  - SAFE WITH ${s.drug}${s.note ? ' — ' + s.note : ''}`)); }
+        return lines.join('\n');
+    }
+
+    async function fetchDiscrepanciesForGR() {
+        const queries = [
+            `MATCH (a)-[:SAFE_WITH]->(b) MATCH (a)-[:CONTRAINDICATED_WITH]->(b) RETURN 'CONFLICT' AS type, a.name AS a, b.name AS b, '' AS detail`,
+            `MATCH (d:Drug) WHERE NOT (d)-[:BELONGS_TO]->() RETURN 'MISSING_CLASS' AS type, d.name AS a, null AS b, '' AS detail LIMIT 10`,
+            `MATCH (d:Drug) WHERE NOT (d)--() RETURN 'ORPHANED' AS type, d.name AS a, null AS b, '' AS detail LIMIT 10`,
+        ];
+        const all = [];
+        for (const q of queries) { const r = await runCypher(q); all.push(...parseRows(r)); }
+        return all;
+    }
+
+    // Pipe highlight helpers
+    function litPipe(ids, active) {
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('lit', id === active);
+        });
+    }
+
+    async function grAnalyzeDrug() {
+        const drug = document.getElementById('gr-drug-input').value.trim();
+        if (!drug) return;
+        const btn = document.getElementById('btn-gr-drug');
+        const body = document.getElementById('gr-drug-body');
+        const meta = document.getElementById('gr-drug-meta');
+        const pipe = ['pd1','pd2','pd3','pd4'];
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span>';
+        body.innerHTML = '<div class="gr-placeholder"><div class="icon" style="opacity:.4">⏳</div><div>Querying Knowledge Graph...</div></div>';
+        try {
+            litPipe(pipe, 'pd1');
+            const sg = await fetchDrugSubgraph(drug);
+            const ctx = serializeDrug(sg);
+            document.getElementById('gr-drug-ctx').textContent = ctx;
+            litPipe(pipe, 'pd2');
+            body.innerHTML = '<div class="gr-placeholder"><div class="icon" style="opacity:.4">🤖</div><div>Sending to Claude...</div></div>';
+            litPipe(pipe, 'pd3');
+            const t0 = Date.now();
+            const answer = await callClaude(
+                `${ctx}\n\nBased on this Knowledge Graph data:\n1. Clinical summary of ${drug}\n2. Key interaction risks (highlight HIGH severity)\n3. Any data quality issues or conflicts\n4. Recommended safe combinations\n5. Clinical recommendation\n\nBe concise and clinically focused.`
+            );
+            litPipe(pipe, 'pd4');
+            body.textContent = answer;
+            meta.textContent = `${drug} · ${((Date.now()-t0)/1000).toFixed(1)}s`;
+        } catch(e) {
+            body.textContent = '⚠ Error: ' + e.message;
+            pipe.forEach(id => { const el=document.getElementById(id); if(el) el.classList.remove('lit'); });
+        } finally {
+            btn.disabled = false; btn.innerHTML = 'Analyze';
+        }
+    }
+
+    async function grAudit() {
+        const btn = document.getElementById('btn-gr-audit');
+        const body = document.getElementById('gr-audit-body');
+        const meta = document.getElementById('gr-audit-meta');
+        const pipe = ['pa1','pa2','pa3','pa4'];
+        btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+        body.innerHTML = '<div class="gr-placeholder"><div class="icon" style="opacity:.4">⏳</div><div>Running Cypher checks...</div></div>';
+        try {
+            litPipe(pipe, 'pa1');
+            const disc = await fetchDiscrepanciesForGR();
+            const lines = disc.length
+                ? [`DISCREPANCIES (${disc.length} found)`, '='.repeat(40),
+                   ...disc.map(d => `[${d.type}] ${d.a}${d.b ? ' ↔ ' + d.b : ''}`)]
+                : ['No discrepancies found.'];
+            const ctx = lines.join('\n');
+            document.getElementById('gr-audit-ctx').textContent = ctx;
+            litPipe(pipe, 'pa2');
+            body.innerHTML = '<div class="gr-placeholder"><div class="icon" style="opacity:.4">🤖</div><div>Claude auditing...</div></div>';
+            litPipe(pipe, 'pa3');
+            const t0 = Date.now();
+            const answer = await callClaude(
+                `${ctx}\n\nAnalyze these KG discrepancies:\n1. Severity ranking (Critical/Warning/Info)\n2. For CONFLICT: clinical risk of contradictory data\n3. For MISSING_CLASS/ORPHANED: data quality impact\n4. Specific remediation steps per issue type\n5. Overall data quality score (0-100)\n\nBe specific and actionable.`
+            );
+            litPipe(pipe, 'pa4');
+            body.textContent = answer;
+            meta.textContent = `${disc.length} issues · ${((Date.now()-t0)/1000).toFixed(1)}s`;
+        } catch(e) {
+            body.textContent = '⚠ Error: ' + e.message;
+        } finally {
+            btn.disabled = false; btn.innerHTML = 'Run Audit';
+        }
+    }
+
+    let chatHistory = [];
+    async function grChat() {
+        const input = document.getElementById('chat-input');
+        const q = input.value.trim();
+        if (!q) return;
+        input.value = '';
+        document.getElementById('chat-empty')?.remove();
+        const btn = document.getElementById('btn-chat');
+        btn.disabled = true;
+        addChatMsg('user', q);
+        const aiEl = addChatMsg('ai', '⏳ Querying KG...');
+        try {
+            // Intent detection
+            const intentRaw = await callClaude(
+                `Extract from this question what to look up in a drug knowledge graph.\nReply with JSON only, no markdown: {"type":"drug"|"symptom"|"discrepancy","value":"name or null"}\nQuestion: ${q}`
+            );
+            let iType = 'unknown', iVal = null;
+            try { const p = JSON.parse(intentRaw.replace(/```json|```/g,'').trim()); iType = p.type; iVal = p.value; } catch(_) {}
+
+            let ctx = '';
+            if (iType === 'drug' && iVal) {
+                const sg = await fetchDrugSubgraph(iVal); ctx = serializeDrug(sg);
+            } else if (iType === 'discrepancy') {
+                const disc = await fetchDiscrepanciesForGR();
+                ctx = disc.length ? `DISCREPANCIES: ${disc.map(d=>`[${d.type}] ${d.a}`).join(', ')}` : 'No discrepancies found.';
+            } else {
+                ctx = '[No specific graph context — answering from general knowledge]';
+            }
+
+            const answer = await callClaude(
+                `Knowledge Graph Context:\n${ctx}\n\nUser question: ${q}\n\nAnswer using the KG data as primary source. If data is missing, say so clearly.`
+            );
+            aiEl.textContent = answer;
+        } catch(e) {
+            aiEl.textContent = '⚠ Error: ' + e.message;
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    function addChatMsg(role, text) {
+        const container = document.getElementById('chat-messages');
+        const div = document.createElement('div');
+        div.className = `chat-msg ${role}`;
+        div.innerHTML = `
+            <div class="chat-avatar">${role === 'user' ? 'U' : 'AI'}</div>
+            <div class="chat-msg-text">${text}</div>`;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+        return div.querySelector('.chat-msg-text');
+    }
+
+    // ── Sub-tab switches ──
+    function switchGR(name) {
+        document.querySelectorAll('.gr-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.gr-panel').forEach(p => p.classList.remove('active'));
+        document.getElementById(`gr-tab-${name}`).classList.add('active');
+        document.getElementById(`gr-${name}`).classList.add('active');
+    }
+
+    function toggleGRCtx(id) {
+        const box = document.getElementById(id);
+        if (!box) return;
+        box.style.display = box.style.display === 'block' ? 'none' : 'block';
+    }
+
+    // ── Init ──
+    renderDiscGrid();
+</script>
+
+</body>
+</html>
