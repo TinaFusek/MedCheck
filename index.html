@@ -744,13 +744,13 @@
         <!-- Drug Analysis -->
         <div class="gr-panel active" id="gr-drug">
             <div class="pipeline-row" id="pipe-drug">
-                <div class="pipe-step" id="pd1">Cypher query</div>
+                <div class="pipe-step" id="pd1">🔍 Cypher query</div>
                 <span class="pipe-arrow">→</span>
-                <div class="pipe-step" id="pd2">Serialize subgraph</div>
+                <div class="pipe-step" id="pd2">📋 Serialize subgraph</div>
                 <span class="pipe-arrow">→</span>
-                <div class="pipe-step" id="pd3">Claude analysis</div>
+                <div class="pipe-step" id="pd3">🤖 Claude analysis</div>
                 <span class="pipe-arrow">→</span>
-                <div class="pipe-step" id="pd4">Narrative output</div>
+                <div class="pipe-step" id="pd4">💡 Narrative output</div>
             </div>
             <div class="input-row" style="margin-bottom:14px">
                 <input type="text" id="gr-drug-input" placeholder="Enter drug name (e.g. BPC-157, Warfarin, Pemetrexed)..."
@@ -759,12 +759,12 @@
             </div>
             <div class="gr-response">
                 <div class="gr-response-header">
-                    <span style="font-size:16px">AI Drug Agent</span>
+                    <span style="font-size:16px">🤖</span>
                     <span class="gr-response-label">GraphRAG Analysis</span>
                     <span class="gr-response-meta" id="gr-drug-meta">—</span>
                 </div>
                 <div class="gr-response-body" id="gr-drug-body">
-                    <div class="gr-placeholder"><div class="icon">Drugs</div><div>Enter a drug name and click Analyze<br>to get an AI-powered clinical summary from your KG</div></div>
+                    <div class="gr-placeholder"><div class="icon">💊</div><div>Enter a drug name and click Analyze<br>to get an AI-powered clinical summary from your KG</div></div>
                 </div>
             </div>
             <div class="gr-context-toggle" onclick="toggleGRCtx('gr-drug-ctx')">▶ Show raw KG context sent to Claude</div>
@@ -774,13 +774,13 @@
         <!-- Discrepancy Audit -->
         <div class="gr-panel" id="gr-discrepancy">
             <div class="pipeline-row">
-                <div class="pipe-step" id="pa1">4× Cypher rules</div>
+                <div class="pipe-step" id="pa1">⚡ 4× Cypher rules</div>
                 <span class="pipe-arrow">→</span>
-                <div class="pipe-step" id="pa2">Aggregate findings</div>
+                <div class="pipe-step" id="pa2">📊 Aggregate findings</div>
                 <span class="pipe-arrow">→</span>
-                <div class="pipe-step" id="pa3">Claude audit</div>
+                <div class="pipe-step" id="pa3">🤖 Claude audit</div>
                 <span class="pipe-arrow">→</span>
-                <div class="pipe-step" id="pa4">Remediation report</div>
+                <div class="pipe-step" id="pa4">📋 Remediation report</div>
             </div>
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
                 <span style="font-size:13px;color:var(--text-light);flex:1">Runs all discrepancy checks → LLM audit report with severity ranking and remediation plan</span>
@@ -788,12 +788,12 @@
             </div>
             <div class="gr-response">
                 <div class="gr-response-header">
-                    <span style="font-size:16px">AI Audit Agent</span>
+                    <span style="font-size:16px">⚡</span>
                     <span class="gr-response-label">Audit Report</span>
                     <span class="gr-response-meta" id="gr-audit-meta">—</span>
                 </div>
                 <div class="gr-response-body" id="gr-audit-body">
-                    <div class="gr-placeholder"><div class="icon">AI Scan Agent</div><div>Click Run Audit to scan your KG<br>and get an AI-powered remediation report</div></div>
+                    <div class="gr-placeholder"><div class="icon">🔎</div><div>Click Run Audit to scan your KG<br>and get an AI-powered remediation report</div></div>
                 </div>
             </div>
             <div class="gr-context-toggle" onclick="toggleGRCtx('gr-audit-ctx')">▶ Show raw Cypher findings sent to Claude</div>
@@ -970,23 +970,17 @@
     // ══════════════════════════════════════════════════════════
     // NEO4J HTTP CONNECTION
     // ══════════════════════════════════════════════════════════
-    const NEO4J_HTTP = 'http://localhost:7474';
-    const NEO4J_USER = 'neo4j';
-    const NEO4J_PASS = 'Ad4m+5amo12_Ad4m+5amo12';
-
+    // Cypher queries routed through FastAPI — no credentials in frontend
     async function runCypher(query, params = {}) {
-        const resp = await fetch(`${NEO4J_HTTP}/db/neo4j/tx/commit`, {
+        const resp = await fetch('/cypher', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Basic ' + btoa(`${NEO4J_USER}:${NEO4J_PASS}`)
-            },
-            body: JSON.stringify({ statements: [{ statement: query, parameters: params }] })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query, params })
         });
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        if (!resp.ok) throw new Error(`Backend error ${resp.status}`);
         const data = await resp.json();
-        if (data.errors?.length) throw new Error(data.errors[0].message);
-        return data.results[0];
+        if (data.error) throw new Error(data.error);
+        return data.result;
     }
 
     function parseRows(result) {
@@ -1202,19 +1196,17 @@ Analyze the graph data and provide clear, accurate, clinically relevant insights
 Be concise but thorough. Flag data quality issues. Note this is for informational purposes only.`;
 
     async function callClaude(userMsg) {
-        const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        const resp = await fetch('/graphrag', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                model: CLAUDE_MODEL,
-                max_tokens: 1000,
                 system: SYSTEM_PROMPT,
                 messages: [{ role: 'user', content: userMsg }]
             })
         });
-        if (!resp.ok) throw new Error(`Claude API ${resp.status}`);
+        if (!resp.ok) throw new Error(`Backend error ${resp.status}`);
         const data = await resp.json();
-        return data.content[0].text;
+        return data.text;
     }
 
     async function fetchDrugSubgraph(drug) {
