@@ -4,7 +4,7 @@ import numpy as np
 
 URI = "neo4j://localhost:7687"
 USERNAME = "neo4j"
-PASSWORD = "Ad4m+5amo12_Ad4m+5amo12"  # zmeň na svoje
+PASSWORD = "..."  # zmeň na svoje
 
 driver = GraphDatabase.driver(URI, auth=(USERNAME, PASSWORD))
 
