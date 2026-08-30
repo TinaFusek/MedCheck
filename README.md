@@ -7,7 +7,8 @@ inconsistencies in the graph, and running GraphRAG-powered analysis over
 Neo4j subgraphs.
 
 ---
-<img width="1920" height="5037" alt="MedCheck — Drug Interaction Checker" src="https://github.com/user-attachments/assets/aa6c359e-9be7-461d-8c14-9777822f92e7" />
+
+<img width="1920" height="5037" alt="medcheck" src="https://github.com/user-attachments/assets/54a37df4-fe14-437d-b942-c7bcae5aa177" />
 
 ---
 
